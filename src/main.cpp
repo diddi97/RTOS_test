@@ -63,7 +63,7 @@ void read_serial(void *parameter) {
   }
 }
 
-// Function writes number i to element i in buffer each time it is called.
+// Function writes number i to element i in buffer each time it is runs.
 void write_to_buf(void *parameter) {
   xSemaphoreGive(semaphore);
   int i = 0;
@@ -110,25 +110,16 @@ void setup() {
                           NULL,             // Task handle
                           app_cpu);
 
-    xTaskCreatePinnedToCore(write_to_buf,
-                            "Write to buffer",
-                            1024,
-                            NULL,
-                            2,
-                            NULL,
-                            app_cpu);
+    // xTaskCreatePinnedToCore(write_to_buf,
+    //                         "Write to buffer",
+    //                         1024,
+    //                         NULL,
+    //                         2,
+    //                         NULL,
+    //                         app_cpu);
+    // xSemaphoreTake(semaphore, portMAX_DELAY);
 }
 
 void loop() {
-  vTaskDelay(10000 / portTICK_PERIOD_MS);
-  if(grn_task != NULL) {
-    vTaskDelete(grn_task);
-    grn_task = NULL;
-  }
-  vTaskDelay(5000 / portTICK_PERIOD_MS);
-  vTaskResume(grn_task);
+// Not used
 }
-
-
-
-
