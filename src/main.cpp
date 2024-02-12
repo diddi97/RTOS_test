@@ -12,8 +12,11 @@ static const BaseType_t app_cpu = 1;
 #define red_led 4
 #define grn_led 5
 
+// Global variables
 static TaskHandle_t red_task = NULL;
 static TaskHandle_t grn_task = NULL;
+static SemaphoreHandle_t semaphore;
+static int buf[10];
 
 static int led_delay = 500;
 
@@ -60,6 +63,14 @@ void read_serial(void *parameter) {
   }
 }
 
+// Function writes number i to element i in buffer each time it is called.
+void write_to_buf(void *parameter) {
+  xSemaphoreGive(semaphore);
+  int i = 0;
+  buf[i] = i;
+  i++;
+}
+
 void setup() {
   pinMode(grn_led, OUTPUT);
   pinMode(red_led, OUTPUT);
@@ -71,6 +82,9 @@ void setup() {
     vTaskDelay(250 / portTICK_PERIOD_MS);
   }
   Serial.println("");
+
+  // Create mutexes and semaphores before starting tasks
+  semaphore = xSemaphoreCreateCounting(3,0);
 
   xTaskCreatePinnedToCore(toggle_red,       // function to be called
                           "Toggle red LED", // Name of task
@@ -95,8 +109,15 @@ void setup() {
                           2,                // Task priority
                           NULL,             // Task handle
                           app_cpu);
-}
 
+    xTaskCreatePinnedToCore(write_to_buf,
+                            "Write to buffer",
+                            1024,
+                            NULL,
+                            2,
+                            NULL,
+                            app_cpu);
+}
 
 void loop() {
   vTaskDelay(10000 / portTICK_PERIOD_MS);
