@@ -2,11 +2,9 @@
 #include <FreeRTOSConfig.h>
 #include <string.h>
 
-#if CONFIG_FREERTOS_UNICORE
-static const BaseType_t app_cpu = 0;
-#else
+// Core definitions (Dual-core ESP32)
+static const BaseType_t pro_cpu = 0;
 static const BaseType_t app_cpu = 1;
-#endif
 
 // Pin Definition
 #define red_led 4
@@ -63,7 +61,8 @@ void read_serial(void *parameter) {
   }
 }
 
-// Function writes number i to element i in buffer each time it is runs.
+/// @brief Function writes number i to element i in buffer each time it is runs.
+/// @param parameter 
 void write_to_buf(void *parameter) {
   xSemaphoreGive(semaphore);
   int i = 0;
@@ -102,22 +101,13 @@ void setup() {
                           &grn_task,             // Task handle
                           app_cpu);  
   
-    xTaskCreatePinnedToCore(read_serial,       // function to be called
+  xTaskCreatePinnedToCore(read_serial,       // function to be called
                           "Read Serial monitor", // Name of task
                           1024,             // Stack size (bytes in ESP32, words in FreeRTOS)
                           NULL,             // Parameter to pass to function
                           2,                // Task priority
                           NULL,             // Task handle
                           app_cpu);
-
-    // xTaskCreatePinnedToCore(write_to_buf,
-    //                         "Write to buffer",
-    //                         1024,
-    //                         NULL,
-    //                         2,
-    //                         NULL,
-    //                         app_cpu);
-    // xSemaphoreTake(semaphore, portMAX_DELAY);
 }
 
 void loop() {
